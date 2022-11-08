@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Gain</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+      @layer components {
+        .title {
+          @apply text-6xl font-bold text-center my-5 bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent;
+        }
+
+        .grid-container {
+          @apply grid grid-cols-2 gap-2 p-2 content-center md:grid-cols-4 md:gap-4 md:p-4;
+        }
+
+        .grid-card {
+          @apply aspect-[4/3] rounded-lg hover:scale-95 transition-all duration-500 cursor-pointer;
+        }
+      }
+    </style>
+    <script defer src="https://unpkg.com/alpinejs@3.10.5/dist/cdn.min.js"></script>
+  </head>
+  <body>
+    <!-- menggunakan alpine js buat print text title -->
+    <h1 class="title" x-data="{ message : 'Memory Gain'}" x-text="message" x-on:click="message = 'Jangan Dipencet'"></h1>
+
+    <div class="grid-container" x-data="game()">
+      <template x-for="card in cards">
+        <div class="aspect-[4/3]">
+          <div class="grid-card" :class="[`bg-${ card.isFlipped ? card.color : 'gray' }-400`,card.animate]" @click="flipCard(card)" x-show="!card.isCleared"></div>
+        </div>
+      </template>
+    </div>
+
+    <script>
+      // ini fungsi dengan parameter milisecond ,promise kalo resolve di jalanin
+      const delay = (milisecond = 700) => new Promise((resolve) => setTimeout(resolve, milisecond));
+      const game = () => {
+        return {
+          cards: [
+            { color: "red", isFlipped: false, isCleared: false, animate: "" },
+            { color: "blue", isFlipped: false, isCleared: false, animate: "" },
+            { color: "green", isFlipped: false, isCleared: false, animate: "" },
+            { color: "yellow", isFlipped: false, isCleared: false, animate: "" },
+            { color: "red", isFlipped: false, isCleared: false, animate: "" },
+            { color: "blue", isFlipped: false, isCleared: false, animate: "" },
+            { color: "green", isFlipped: false, isCleared: false, animate: "" },
+            { color: "yellow", isFlipped: false, isCleared: false, animate: "" },
+          ].sort(() => Math.random() - 0.5),
+
+          get flippedCards() {
+            return this.cards.filter((card) => card.isFlipped);
+          },
+          get remainingCards() {
+            return this.cards.filter((card) => !card.isCleared);
+          },
+          async flipCard(card) {
+            // buat handle double click jika sudah 2 card
+            if (this.flippedCards.length == 2) return;
+
+            // buka/tutup kartu
+            card.isFlipped = !card.isFlipped;
+
+            if (this.flippedCards.length == 2) {
+              if (this.flippedCards[0].color == this.flippedCards[1].color) {
+                // kasih animasi
+                this.flippedCards.forEach((cardFlipped) => (cardFlipped.animate = "animate__animated animate__rubberBand"));
+
+                // pake await biar nungguin si delay jalan dl baru jalan berikutnya
+                await delay();
+
+                // ngilangin kartu kalo 2 2nya bener
+                this.flippedCards.forEach((cardFlipped) => (cardFlipped.isCleared = true));
+
+                // cek apakah udah abis blom
+                if (this.remainingCards.length == 0) {
+                  alert("Selamat Anda Sudah Menang");
+                  location.reload();
+                }
+              }
+
+              // kasih animasi
+              this.flippedCards.forEach((cardFlipped) => (cardFlipped.animate = "animate__animated animate__shakeX"));
+
+              // tutup semua kartunya
+              await delay();
+              this.flippedCards.forEach((cardFlipped) => (cardFlipped.isFlipped = false));
+
+              this.remainingCards.forEach((cardFlipped) => (cardFlipped.animate = ""));
+            }
+          },
+        };
+      };
+    </script>
+  </body>
+</html>
